@@ -1,0 +1,14 @@
+[
+  {
+    "domain": "career",
+    "input": "I am in 3rd year CSE, know Python basics, and want a data science job in 8 months. I can study 2 hours daily and prefer project-based learning."
+  },
+  {
+    "domain": "study",
+    "input": "I have GATE exam in 6 months, can study 3 hours daily, and I am weak in aptitude and digital logic."
+  },
+  {
+    "domain": "skill",
+    "input": "I want to become full-stack developer in 9 months with low budget and 2 hours daily."
+  }
+]
