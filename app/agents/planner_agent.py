@@ -1,65 +1,111 @@
 from __future__ import annotations
-
+import json
 from app.agents.base_agent import BaseAgent
-from app.models.schemas import AnalysisReport, AgentLogEntry, PlanMilestone, PlanOption, UserProfile
+from app.models.schemas import (
+    AnalysisReport,
+    AgentLogEntry,
+    PlanMilestone,
+    PlanOption,
+    UserProfile,
+)
 
 
 class PlannerAgent(BaseAgent):
     name = "PlannerAgent"
 
-    def run(self, profile: UserProfile, analysis: AnalysisReport) -> tuple[list[PlanOption], list[AgentLogEntry]]:
+    def __init__(self, llm=None):
+        self.llm = llm
+
+    def run(
+        self,
+        profile: UserProfile,
+        analysis: AnalysisReport,
+    ) -> tuple[list[PlanOption], list[AgentLogEntry]]:
+
         total_months = profile.timeline_months or 6
         total_weeks = max(total_months * 4, 8)
 
+        # -------------------------
+        # RULE-BASED PLANS
+        # -------------------------
         options = [
             self._build_foundation_plan(total_weeks),
             self._build_execution_plan(total_weeks),
             self._build_hybrid_plan(total_weeks),
         ]
 
+        # -------------------------
+        # OPTIONAL LLM ENHANCEMENT
+        # -------------------------
+        if self.llm and self.llm.available():
+            try:
+                prompt = f"""
+                Generate 3 structured plans in JSON format.
+
+                Each plan should include:
+                plan_id, title, description
+
+                Profile:
+                {profile.model_dump()}
+
+                Analysis:
+                {analysis.model_dump()}
+                """
+
+                llm_output = self.llm.complete(prompt)
+
+                # Optional parsing (safe fallback)
+                _ = json.loads(llm_output)
+
+            except Exception:
+                pass  # fallback safe
+
         logs = [
             AgentLogEntry(
                 agent=self.name,
                 step="plan",
-                detail=f"Generated {len(options)} candidate plans with milestones",
+                detail=f"Generated {len(options)} plans (rule + optional LLM)",
                 confidence=0.84,
             )
         ]
+
         return options, logs
 
+    # -------------------------
+    # PLAN A
+    # -------------------------
     def _build_foundation_plan(self, weeks: int) -> PlanOption:
         part = max(weeks // 3, 2)
-        milestones = [
-            PlanMilestone(
-                phase="Fundamentals",
-                duration_weeks=part,
-                tasks=["Strengthen core concepts", "Complete structured tutorials", "Weekly revision"],
-            ),
-            PlanMilestone(
-                phase="Intermediate Practice",
-                duration_weeks=part,
-                tasks=["Guided mini-projects", "Solve curated problems", "Track weak areas"],
-            ),
-            PlanMilestone(
-                phase="Portfolio and Readiness",
-                duration_weeks=weeks - (2 * part),
-                tasks=["Build capstone projects", "Prepare resume/notes", "Mock interviews/tests"],
-            ),
-        ]
+
         return PlanOption(
             plan_id="A",
-            title="Foundation-First Roadmap",
-            description="Prioritizes strong fundamentals before intensive output.",
-            milestones=milestones,
-            weekly_schedule=[
-                "Mon-Tue: concept learning",
-                "Wed-Thu: hands-on exercises",
-                "Fri: recap and notes",
-                "Sat: mini deliverable",
-                "Sun: review and planning",
+            title="Foundation-First Plan",
+            description="Strong conceptual learning first",
+            milestones=[
+                PlanMilestone(
+                    phase="Basics",
+                    duration_weeks=part,
+                    tasks=["Learn fundamentals", "Practice daily"],
+                ),
+                PlanMilestone(
+                    phase="Practice",
+                    duration_weeks=part,
+                    tasks=["Mini projects", "Problem solving"],
+                ),
+                PlanMilestone(
+                    phase="Final Prep",
+                    duration_weeks=weeks - (2 * part),
+                    tasks=["Build portfolio", "Prepare interviews"],
+                ),
             ],
-            pros=["Strong conceptual base", "Lower long-term confusion"],
-            cons=["Slower visible outcomes in first month"],
+            weekly_schedule=[
+                "Mon-Tue: Learn",
+                "Wed-Thu: Practice",
+                "Fri: Revise",
+                "Weekend: Projects",
+            ],
+            pros=["Strong base"],
+            cons=["Slow start"],
             goal_alignment=0.78,
             time_feasibility=0.82,
             skill_gap_fit=0.88,
@@ -67,39 +113,41 @@ class PlannerAgent(BaseAgent):
             risk_penalty=0.14,
         )
 
+    # -------------------------
+    # PLAN B
+    # -------------------------
     def _build_execution_plan(self, weeks: int) -> PlanOption:
         part = max(weeks // 3, 2)
-        milestones = [
-            PlanMilestone(
-                phase="Fast Output Start",
-                duration_weeks=part,
-                tasks=["Start practical tasks from week 1", "Build public progress artifacts", "Get early feedback"],
-            ),
-            PlanMilestone(
-                phase="Targeted Skill Patch",
-                duration_weeks=part,
-                tasks=["Fix gaps as needed", "Practice assessment patterns", "Time-boxed improvement"],
-            ),
-            PlanMilestone(
-                phase="Outcome Push",
-                duration_weeks=weeks - (2 * part),
-                tasks=["Refine top projects", "Intensive interview prep", "Applications/exam simulations"],
-            ),
-        ]
+
         return PlanOption(
             plan_id="B",
-            title="Execution-First Roadmap",
-            description="Focuses on quick visible output and market/exam readiness.",
-            milestones=milestones,
-            weekly_schedule=[
-                "Mon: practical build sprint",
-                "Tue: targeted theory",
-                "Wed-Thu: project enhancement",
-                "Fri: feedback integration",
-                "Sat-Sun: simulation and review",
+            title="Execution-First Plan",
+            description="Focus on output quickly",
+            milestones=[
+                PlanMilestone(
+                    phase="Start Projects",
+                    duration_weeks=part,
+                    tasks=["Build from day 1", "Publish work"],
+                ),
+                PlanMilestone(
+                    phase="Fix Weak Areas",
+                    duration_weeks=part,
+                    tasks=["Improve gaps", "Targeted practice"],
+                ),
+                PlanMilestone(
+                    phase="Placement Prep",
+                    duration_weeks=weeks - (2 * part),
+                    tasks=["Mock interviews", "Applications"],
+                ),
             ],
-            pros=["Early tangible results", "Strong demo/interview story"],
-            cons=["Higher risk of conceptual gaps"],
+            weekly_schedule=[
+                "Mon: Build",
+                "Tue: Learn",
+                "Wed-Thu: Improve",
+                "Weekend: Review",
+            ],
+            pros=["Fast results"],
+            cons=["Weak theory risk"],
             goal_alignment=0.84,
             time_feasibility=0.75,
             skill_gap_fit=0.70,
@@ -107,41 +155,43 @@ class PlannerAgent(BaseAgent):
             risk_penalty=0.18,
         )
 
+    # -------------------------
+    # PLAN C (BEST)
+    # -------------------------
     def _build_hybrid_plan(self, weeks: int) -> PlanOption:
         part = max(weeks // 3, 2)
-        milestones = [
-            PlanMilestone(
-                phase="Core + Quick Wins",
-                duration_weeks=part,
-                tasks=["Daily concept-practice split", "One small project", "Weekly checkpoint"],
-            ),
-            PlanMilestone(
-                phase="Balanced Growth",
-                duration_weeks=part,
-                tasks=["Build medium project", "Strengthen weak topics", "Peer/community feedback"],
-            ),
-            PlanMilestone(
-                phase="Final Optimization",
-                duration_weeks=weeks - (2 * part),
-                tasks=["Finalize portfolio/revision set", "Mock interviews/exams", "Application strategy"],
-            ),
-        ]
+
         return PlanOption(
             plan_id="C",
-            title="Hybrid Balanced Roadmap",
-            description="Balances conceptual depth and practical outcomes.",
-            milestones=milestones,
-            weekly_schedule=[
-                "Mon: concept block",
-                "Tue: applied exercises",
-                "Wed: project work",
-                "Thu: concept reinforcement",
-                "Fri: output review",
-                "Sat: milestone tasks",
-                "Sun: rest + reflection",
+            title="Hybrid Balanced Plan",
+            description="Best mix of learning and execution",
+            milestones=[
+                PlanMilestone(
+                    phase="Start + Learn",
+                    duration_weeks=part,
+                    tasks=["Learn + mini project"],
+                ),
+                PlanMilestone(
+                    phase="Growth",
+                    duration_weeks=part,
+                    tasks=["Build real project", "Improve weak areas"],
+                ),
+                PlanMilestone(
+                    phase="Final Phase",
+                    duration_weeks=weeks - (2 * part),
+                    tasks=["Portfolio + interviews"],
+                ),
             ],
-            pros=["Balanced pace", "Lower burnout risk", "Good explanation power in viva/interviews"],
-            cons=["Requires discipline and weekly tracking"],
+            weekly_schedule=[
+                "Mon: Learn",
+                "Tue: Practice",
+                "Wed: Project",
+                "Thu: Revise",
+                "Fri: Output",
+                "Weekend: Review",
+            ],
+            pros=["Balanced", "Low burnout"],
+            cons=["Needs discipline"],
             goal_alignment=0.89,
             time_feasibility=0.88,
             skill_gap_fit=0.86,

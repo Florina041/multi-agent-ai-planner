@@ -24,7 +24,7 @@ class UserProfile(BaseModel):
     goal: Optional[str] = None
 
     # ✅ FIXED NAME + SAFE DEFAULTS
-    current_skills: List[str] = Field(default_factory=list)
+    skills: List[str] = Field(default_factory=list)
     constraints: List[str] = Field(default_factory=list)
 
     timeline_months: Optional[int] = None

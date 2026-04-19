@@ -8,7 +8,7 @@ def test_analyzer_creates_risks_and_priorities() -> None:
         goal="crack exam",
         timeline_months=5,
         daily_time_hours=2,
-        current_skills=["math basics"],
+        skills=["math basics"],
         constraints=["college workload"],
     )
     agent = AnalyzerAgent()
