@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-
 import streamlit as st
 
 from app.core.orchestrator import MultiAgentOrchestrator
@@ -70,19 +69,35 @@ def main() -> None:
         st.subheader("Clarification Required")
         clarification = render_clarification_panel(st.session_state["pending_questions"])
         if st.button("Submit Clarifications") and clarification.strip():
-            merged_input = st.session_state["last_user_text"] + " " + clarification.strip()
+            merged_input = (
+                st.session_state["last_user_text"] + " " + clarification.strip()
+            )
             result = orchestrator.run(
                 user_text=merged_input,
                 domain=st.session_state["last_domain"],
                 session_id=st.session_state["session_id"],
             )
             st.session_state["last_result"] = result
-            st.session_state["pending_questions"] = result.questions if result.status == "need_clarification" else []
+            st.session_state["pending_questions"] = (
+                result.questions if result.status == "need_clarification" else []
+            )
 
     result = st.session_state.get("last_result")
+
+    # 🔥 UPDATED SECTION (RAG + Evaluation + Tool)
     if result and result.status == "complete":
         render_results_dashboard(result)
 
+        st.subheader("🔍 Retrieved Knowledge")
+        st.write(getattr(result, "rag_context", "Not available"))
+
+        st.subheader("📊 Faithfulness Score")
+        st.write(getattr(result, "faithfulness_score", "Not available"))
+
+        st.subheader("🛠 Tool Insight")
+        st.write(getattr(result, "tool_output", "Not available"))
+
+        # Export Section
         st.subheader("Export")
         payload = result.final_response.model_dump() if result.final_response else {}
         json_text = json.dumps(payload, indent=2)
@@ -113,6 +128,7 @@ def main() -> None:
             exporter.export_text(result.session_id, text_report)
             st.success("Files exported to local exports folder.")
 
+    # History Section
     st.subheader("Recent Interaction History")
     history = orchestrator.get_history(limit=10)
     if history:

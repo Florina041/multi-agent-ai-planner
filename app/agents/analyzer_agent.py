@@ -13,51 +13,68 @@ class AnalyzerAgent(BaseAgent):
             "practical execution plan",
             "risk-aware strategy",
         ]
+
         priorities = []
 
+        # urgency
         if profile.timeline_months and profile.timeline_months <= 6:
             priorities.append("high urgency delivery")
         else:
             priorities.append("balanced long-term progression")
 
+        # workload
         if profile.daily_time_hours and profile.daily_time_hours <= 2:
             priorities.append("low daily load consistency")
         else:
             priorities.append("higher weekly intensity")
 
+        # preferences
         if profile.preferences:
             priorities.append(f"respect preference: {profile.preferences[0]}")
 
+        # risks
         risks = []
+
+        # ✅ IMPORTANT FIX HERE
         if not profile.current_skills:
             risks.append("skill baseline unclear")
+
         if profile.timeline_months and profile.timeline_months < 4:
-            risks.append("timeline may be unrealistic for deep mastery")
+            risks.append("timeline may be unrealistic")
+
         if "college workload" in profile.constraints:
             risks.append("schedule disruption due to academics")
 
         assumptions = [
-            "user can maintain weekly consistency",
-            "internet access available for resources",
+            "user can maintain consistency",
+            "internet access available",
         ]
 
-        readiness = 0.55 + (0.1 if profile.current_skills else 0.0) + (0.05 if profile.daily_time_hours and profile.daily_time_hours >= 2 else 0.0)
+        readiness = 0.5
+
+        if profile.current_skills:
+            readiness += 0.1
+
+        if profile.daily_time_hours and profile.daily_time_hours >= 2:
+            readiness += 0.1
+
         readiness = min(round(readiness, 2), 0.95)
 
         report = AnalysisReport(
+            readiness_score=readiness,
             user_needs=needs,
             priorities=priorities,
             risks=risks,
             assumptions=assumptions,
-            readiness_score=readiness,
         )
 
         logs = [
             AgentLogEntry(
                 agent=self.name,
                 step="analyze",
-                detail="Interpreted user goals, priorities, and constraints",
-                confidence=0.86,
+                detail="Generated priorities, risks, and readiness score",
+                confidence=0.87,
             )
         ]
+
         return report, logs

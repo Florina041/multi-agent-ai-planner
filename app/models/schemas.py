@@ -1,65 +1,74 @@
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
-from typing import Any
-
-from app.models.enums import DomainType
+from typing import List, Dict, Any, Optional
+from pydantic import BaseModel, Field
 
 
-@dataclass
-class DumpableModel:
-    def model_dump(self) -> dict[str, Any]:
-        return asdict(self)
-
-
-@dataclass
-class AgentLogEntry(DumpableModel):
+# -----------------------------
+# Agent Logs
+# -----------------------------
+class AgentLogEntry(BaseModel):
     agent: str
     step: str
     detail: str
-    confidence: float = 0.0
+    confidence: float
 
 
-@dataclass
-class UserProfile(DumpableModel):
+# -----------------------------
+# User Profile (FIXED)
+# -----------------------------
+class UserProfile(BaseModel):
+    domain: Any
     raw_input: str
-    domain: DomainType = DomainType.CAREER
-    goal: str | None = None
-    current_skills: list[str] = field(default_factory=list)
-    constraints: list[str] = field(default_factory=list)
-    preferences: list[str] = field(default_factory=list)
-    timeline_months: int | None = None
-    daily_time_hours: int | None = None
-    budget_level: str | None = None
-    missing_fields: list[str] = field(default_factory=list)
-    follow_up_questions: list[str] = field(default_factory=list)
+
+    goal: Optional[str] = None
+
+    # ✅ FIXED NAME + SAFE DEFAULTS
+    current_skills: List[str] = Field(default_factory=list)
+    constraints: List[str] = Field(default_factory=list)
+
+    timeline_months: Optional[int] = None
+    daily_time_hours: Optional[int] = None
+    budget_level: Optional[str] = None
+
+    preferences: List[str] = Field(default_factory=list)
+    missing_fields: List[str] = Field(default_factory=list)
+    follow_up_questions: List[str] = Field(default_factory=list)
 
 
-@dataclass
-class AnalysisReport(DumpableModel):
-    user_needs: list[str] = field(default_factory=list)
-    priorities: list[str] = field(default_factory=list)
-    risks: list[str] = field(default_factory=list)
-    assumptions: list[str] = field(default_factory=list)
-    readiness_score: float = 0.0
+# -----------------------------
+# Analysis
+# -----------------------------
+class AnalysisReport(BaseModel):
+    readiness_score: float
+    user_needs: List[str]
+    priorities: List[str]
+    risks: List[str]
+    assumptions: List[str]
 
 
-@dataclass
-class PlanMilestone(DumpableModel):
+# -----------------------------
+# Plan Milestone
+# -----------------------------
+class PlanMilestone(BaseModel):
     phase: str
     duration_weeks: int
-    tasks: list[str]
+    tasks: List[str]
 
 
-@dataclass
-class PlanOption(DumpableModel):
+# -----------------------------
+# Plan Options (FIXED)
+# -----------------------------
+class PlanOption(BaseModel):
     plan_id: str
     title: str
     description: str
-    milestones: list[PlanMilestone]
-    weekly_schedule: list[str]
-    pros: list[str]
-    cons: list[str]
+    milestones: List[PlanMilestone]
+    weekly_schedule: List[str]
+    pros: List[str]
+    cons: List[str]
+
+    # ✅ CRITICAL FOR SCORING ENGINE
     goal_alignment: float
     time_feasibility: float
     skill_gap_fit: float
@@ -67,34 +76,52 @@ class PlanOption(DumpableModel):
     risk_penalty: float
 
 
-@dataclass
-class DecisionReport(DumpableModel):
-    ranking: list[dict[str, Any]]
+# -----------------------------
+# Decision
+# -----------------------------
+class DecisionReport(BaseModel):
+    ranking: List[Dict[str, Any]]
     selected_plan_id: str
     reasoning: str
     confidence_score: float
 
 
-@dataclass
-class FinalResponse(DumpableModel):
+# -----------------------------
+# Final Response
+# -----------------------------
+class FinalResponse(BaseModel):
     summary: str
-    extracted_information: dict[str, Any]
-    analysis: dict[str, Any]
-    options: list[dict[str, Any]]
-    recommendation: dict[str, Any]
-    action_plan: list[str]
-    warnings: list[str]
-    next_steps: list[str]
+    extracted_information: Dict[str, Any]
+    analysis: Dict[str, Any]
+    options: List[Dict[str, Any]]
+    recommendation: Dict[str, Any]
+    action_plan: List[str]
+    warnings: List[str]
+    next_steps: List[str]
+
+    # ✅ RAG support
+    retrieved_knowledge: Optional[str] = None
 
 
-@dataclass
-class WorkflowResult(DumpableModel):
+# -----------------------------
+# Workflow Result (FIXED)
+# -----------------------------
+class WorkflowResult(BaseModel):
     status: str
     session_id: str
-    questions: list[str] = field(default_factory=list)
-    user_profile: UserProfile | None = None
-    analysis_report: AnalysisReport | None = None
-    plan_options: list[PlanOption] = field(default_factory=list)
-    decision_report: DecisionReport | None = None
-    final_response: FinalResponse | None = None
-    agent_logs: list[AgentLogEntry] = field(default_factory=list)
+
+    # ✅ REQUIRED FOR CLARIFICATION FLOW
+    questions: Optional[List[str]] = None
+
+    user_profile: Optional[UserProfile] = None
+    analysis_report: Optional[AnalysisReport] = None
+    plan_options: Optional[List[PlanOption]] = None
+    decision_report: Optional[DecisionReport] = None
+    final_response: Optional[FinalResponse] = None
+
+    agent_logs: List[AgentLogEntry]
+
+    # ✅ EXTRA OUTPUTS
+    rag_context: Optional[str] = None
+    faithfulness_score: Optional[float] = None
+    tool_output: Optional[Any] = None
