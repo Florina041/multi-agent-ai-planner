@@ -1,9 +1,11 @@
 from app.agents.analyzer_agent import AnalyzerAgent
+from app.models.enums import DomainType
 from app.models.schemas import UserProfile
 
 
 def test_analyzer_creates_risks_and_priorities() -> None:
     profile = UserProfile(
+        domain=DomainType.STUDY,
         raw_input="sample",
         goal="crack exam",
         timeline_months=5,

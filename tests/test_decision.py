@@ -21,5 +21,12 @@ def _option(plan_id: str, score_offset: float) -> PlanOption:
 
 def test_decision_ranks_plans() -> None:
     agent = DecisionAgent()
-    report, _ = agent.run(AnalysisReport(readiness_score=0.7), [_option("A", 0.0), _option("B", 0.1)])
+    analysis = AnalysisReport(
+        readiness_score=0.7,
+        user_needs=["clear roadmap"],
+        priorities=["time efficiency"],
+        risks=["consistency risk"],
+        assumptions=["user follows weekly plan"],
+    )
+    report, _ = agent.run(analysis, [_option("A", 0.0), _option("B", 0.1)])
     assert report.ranking[0]["plan_id"] == "B"
