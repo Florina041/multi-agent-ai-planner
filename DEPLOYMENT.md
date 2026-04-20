@@ -15,7 +15,7 @@ This project is deployment-ready for both Render and Streamlit Community Cloud.
 Start command used:
 
 ```bash
-streamlit run app/ui/streamlit_app.py --server.port=$PORT --server.address=0.0.0.0
+streamlit run run.py --server.port=$PORT --server.address=0.0.0.0
 ```
 
 ## Option 2: Streamlit Community Cloud

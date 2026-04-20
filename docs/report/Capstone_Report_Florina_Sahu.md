@@ -163,7 +163,7 @@ The project successfully demonstrates a robust and explainable multi-agent syste
 ### B. Run Instructions
 1. Create virtual environment.
 2. Install dependencies from `requirements.txt`.
-3. Launch Streamlit app via `streamlit run app/ui/streamlit_app.py`.
+3. Launch Streamlit app via `streamlit run run.py`.
 
 ### C. Dependency List
 Core dependencies include Streamlit, python-dotenv, OpenAI SDK, and pytest.

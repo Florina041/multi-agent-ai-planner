@@ -78,7 +78,7 @@ capstone_multi_agent_planner/
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-streamlit run app/ui/streamlit_app.py
+streamlit run run.py
 ```
 
 Optional environment file:

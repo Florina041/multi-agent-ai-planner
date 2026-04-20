@@ -13,4 +13,4 @@ COPY . .
 ENV PORT=8501
 EXPOSE 8501
 
-CMD ["sh", "-c", "streamlit run app/ui/streamlit_app.py --server.port=${PORT} --server.address=0.0.0.0"]
+CMD ["sh", "-c", "streamlit run run.py --server.port=${PORT} --server.address=0.0.0.0"]

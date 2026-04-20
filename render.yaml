@@ -4,10 +4,12 @@ services:
     env: python
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: streamlit run app/ui/streamlit_app.py --server.port=$PORT --server.address=0.0.0.0
+    startCommand: streamlit run run.py --server.port=$PORT --server.address=0.0.0.0
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.8
+      - key: PYTHONPATH
+        value: .
       - key: OPENAI_API_KEY
         sync: false
       - key: OPENAI_MODEL
