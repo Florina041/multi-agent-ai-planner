@@ -41,10 +41,6 @@ capstone_multi_agent_planner/
     ui/
     utils/
   data/
-  docs/
-    report/
-    samples/
-    screenshots/
   tests/
   requirements.txt
   README.md
@@ -89,56 +85,5 @@ Optional environment file:
 ```powershell
 pytest -q
 ```
-
-## Deploy
-
-Deployment-ready files included:
-- `render.yaml` for Render
-- `.streamlit/config.toml` for Streamlit Cloud
-- `Dockerfile` and `.dockerignore` for container deployment
-
-Quick deploy options:
-
-1. Render
-- Push repo to GitHub
-- Create Render Blueprint
-- Set `OPENAI_API_KEY` env var (optional)
-
-2. Streamlit Community Cloud
-- Select main file: `app/ui/streamlit_app.py`
-- Add secrets if needed
-
-3. Docker
-```powershell
-docker build -t multi-agent-ai-planner .
-docker run -p 8501:8501 -e OPENAI_API_KEY=your_key multi-agent-ai-planner
-```
-
-Detailed steps: see `DEPLOYMENT.md`.
-
-## Sample Inputs
-See `data/seed_cases.json` and `docs/samples/sample_inputs_outputs.md`.
-
-## Documentation Package
-- Report template: `docs/report/Capstone_Report_Template.md`
-- Screenshot guide: `docs/screenshots/README.md`
-- Sample IO: `docs/samples/sample_inputs_outputs.md`
-- Test cases: `docs/test_cases.md`
-- Presentation plan: `docs/presentation_strategy.md`
-
-## Submission Checklist
-- [x] Working source code with modular structure
-- [x] Dependency list (`requirements.txt`)
-- [x] Run instructions (`README.md`)
-- [x] Sample test cases (`docs/test_cases.md`)
-- [x] Documentation template (`docs/report/Capstone_Report_Template.md`)
-- [x] Sample input/output references
-- [x] Export support for results
-
-## GitHub and ZIP Submission
-1. Initialize git repository and commit all files.
-2. Push to your GitHub repository.
-3. Create ZIP of this project folder for college submission.
-
 ## Originality Note
 This codebase is designed specifically for this capstone prompt with explicit multi-agent modules and explainable workflow, not a single-chatbot wrapper.
